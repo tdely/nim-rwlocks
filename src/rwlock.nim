@@ -10,11 +10,11 @@ type Rwlock* = object
 
 proc tryAcquireRead*(rw: var Rwlock): bool {.inline.} =
   ## Tries to acquire the given lock for reading. Returns `true` on success.
-  if tryAcquire(rw.g):
-    if rw.waitingWriters == 0 and not rw.writerActive:
-      inc(rw.activeReaders)
-      result = true
-    release(rw.g)
+  acquire(rw.g)
+  if rw.waitingWriters == 0 and not rw.writerActive:
+    inc(rw.activeReaders)
+    result = true
+  release(rw.g)
 
 proc acquireRead*(rw: var Rwlock) {.inline.} =
   ## Acquires the given lock for reading.
@@ -33,11 +33,11 @@ proc releaseRead*(rw: var Rwlock) {.inline.} =
 
 proc tryAcquireWrite*(rw: var Rwlock): bool {.inline.} =
   ## Tries to acquire the given lock for writing. Returns `true` on success.
-  if tryAcquire(rw.g):
-    if rw.activeReaders == 0 and not rw.writerActive:
-      rw.writerActive = true
-      result = true
-    release(rw.g)
+  acquire(rw.g)
+  if rw.activeReaders == 0 and not rw.writerActive:
+    rw.writerActive = true
+    result = true
+  release(rw.g)
 
 proc acquireWrite*(rw: var Rwlock) {.inline.} =
   ## Acquires the given lock for writing.
