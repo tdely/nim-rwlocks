@@ -14,7 +14,7 @@ finished writing
 
 from os import sleep
 
-import rwlock
+import rwlocks
 
 type PLock = ptr Rwlock
 

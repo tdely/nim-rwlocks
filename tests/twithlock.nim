@@ -6,7 +6,7 @@ writing
 finished writing
 '''
 """
-import rwlock
+import rwlocks
 
 var lock: Rwlock
 
