@@ -2,19 +2,18 @@ import std/locks
 
 type Rwlock* = object
   ## Readers-writer lock (multiple readers, single writer).
-  activeReaders: int
-  waitingWriters: int
-  writerActive: bool
+  activeReaders {.guard: g.}: int
+  waitingWriters {.guard: g.}: int
+  writerActive {.guard: g.}: bool
   cond: Cond
   g: Lock
 
 proc tryAcquireRead*(rw: var Rwlock): bool {.inline.} =
   ## Tries to acquire the given lock for reading. Returns `true` on success.
-  acquire(rw.g)
-  if rw.waitingWriters == 0 and not rw.writerActive:
-    inc(rw.activeReaders)
-    result = true
-  release(rw.g)
+  withLock(rw.g):
+    if rw.waitingWriters == 0 and not rw.writerActive:
+      inc(rw.activeReaders)
+      result = true
 
 proc acquireRead*(rw: var Rwlock) {.inline.} =
   ## Acquires the given lock for reading.
@@ -25,19 +24,18 @@ proc acquireRead*(rw: var Rwlock) {.inline.} =
 
 proc releaseRead*(rw: var Rwlock) {.inline.} =
   ## Releases the given lock from reading.
-  doAssert rw.activeReaders > 0
   withLock(rw.g):
+    doAssert rw.activeReaders > 0
     dec(rw.activeReaders)
     if rw.activeReaders == 0:
       rw.cond.broadcast()
 
 proc tryAcquireWrite*(rw: var Rwlock): bool {.inline.} =
   ## Tries to acquire the given lock for writing. Returns `true` on success.
-  acquire(rw.g)
-  if rw.activeReaders == 0 and not rw.writerActive:
-    rw.writerActive = true
-    result = true
-  release(rw.g)
+  withLock(rw.g):
+    if rw.activeReaders == 0 and not rw.writerActive:
+      rw.writerActive = true
+      result = true
 
 proc acquireWrite*(rw: var Rwlock) {.inline.} =
   ## Acquires the given lock for writing.
@@ -50,8 +48,8 @@ proc acquireWrite*(rw: var Rwlock) {.inline.} =
 
 proc releaseWrite*(rw: var Rwlock) {.inline.} =
   ## Releases the given lock from writing.
-  doAssert rw.writerActive
   withLock(rw.g):
+    doAssert rw.writerActive
     rw.writerActive = false
     rw.cond.broadcast()
 
