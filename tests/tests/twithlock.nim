@@ -1,26 +1,23 @@
 discard """
-  output: '''
-reading
-finished reading
-writing
-finished writing
-'''
+  outputsub: "2"
 """
 import rwlocks
 
-var lock: Rwlock
+var
+  lock: Rwlock
+  errCount: int
 
 try:
   withReadLock(lock):
-    echo "reading"
-    raise newException(Exception, "finished reading")
-except Exception as e: echo e.msg
+    raise newException(Exception, "read")
+except Exception: inc(errCount)
 
 try:
   withWriteLock(lock):
-    echo "writing"
-    raise newException(Exception, "finished writing")
-except Exception as e: echo e.msg
+    raise newException(Exception, "write")
+except Exception: inc(errCount)
+
+echo errCount
 
 doAssert tryAcquireRead(lock)
 releaseRead(lock)

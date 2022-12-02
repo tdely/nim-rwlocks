@@ -1,52 +1,38 @@
 discard """
   output: '''
-reading
-reading
-writer acquiring
-could not read
-could not read
-finished reading
-finished reading
-writing
-finished writing
+acquired
+failed to acquire
 '''
 """
-
 from os import sleep
 
 import rwlocks
 
-type PLock = ptr Rwlock
-
-proc rAction(lock: Plock) {.thread.} =
-  if tryAcquireRead(lock[]):
-    echo "reading"
-    sleep(300)
-    echo "finished reading"
-    releaseRead(lock[])
-  else: echo "could not read"
-
-proc wAction(lock: Plock) {.thread.} =
-  echo "writer acquiring"
-  acquireWrite(lock[])
-  echo "writing"
-  sleep(300)
-  echo "finished writing"
-  releaseWrite(lock[])
-
 var
-  rthrs: array[4, Thread[PLock]]
-  wthr: Thread[PLock]
+  thrs: array[3, Thread[void]]
   lock: Rwlock
+  chan: Channel[string]
 
-for i in 0..1:
-  createThread(rthrs[i], rAction, addr(lock))
+proc reader() {.thread.} =
+  if tryAcquireRead(lock):
+    echo "acquired"
+    discard chan.recv()
+    releaseRead(lock)
+  else: echo "failed to acquire"
 
+proc writer() {.thread.} =
+  acquireWrite(lock)
+  discard chan.recv()
+  releaseWrite(lock)
+
+open(chan)
+
+createThread(thrs[0], reader)
 sleep(50)
-createThread(wthr, wAction, addr(lock))
+createThread(thrs[1], writer)
+sleep(50)
+createThread(thrs[2], reader)
+for i in 0..2: chan.send($i)
 
-for i in 2..3:
-  createThread(rthrs[i], rAction, addr(lock))
-
-joinThreads(rthrs)
-joinThreads(wthr)
+joinThreads(thrs)
+close(chan)

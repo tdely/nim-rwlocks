@@ -1,30 +1,25 @@
 discard """
   output: '''
-writing
-could not write
-finished writing
+acquired
+failed to acquire
 '''
 """
-
 from os import sleep
 
 import rwlocks
 
-type PLock = ptr Rwlock
-
-proc wAction(lock: Plock) {.thread.} =
-  if tryAcquireWrite(lock[]):
-    echo "writing"
-    sleep(300)
-    echo "finished writing"
-    releaseWrite(lock[])
-  else: echo "could not write"
-
 var
-  wthrs: array[2, Thread[PLock]]
+  thrs: array[2, Thread[void]]
   lock: Rwlock
 
-for i in 0..1:
-  createThread(wthrs[i], wAction, addr(lock))
+proc writer() {.thread.} =
+  if tryAcquireWrite(lock):
+    echo "acquired"
+    sleep(50)
+    releaseWrite(lock)
+  else: echo "failed to acquire"
 
-joinThreads(wthrs)
+for i in 0..1:
+  createThread(thrs[i], writer)
+
+joinThreads(thrs)
