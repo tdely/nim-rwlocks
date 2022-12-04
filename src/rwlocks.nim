@@ -1,5 +1,7 @@
 import std/locks
 
+{.push stacktrace: off.}
+
 type Rwlock* = object
   ## Readers-writer lock (multiple readers, single writer).
   activeReaders {.guard: g.}: int
@@ -72,3 +74,5 @@ template withWriteLock*(rw: Rwlock, stmt: untyped) =
       stmt
     finally:
       rw.releaseWrite()
+
+{.pop.}
