@@ -56,17 +56,19 @@ proc releaseWrite*(rw: var Rwlock) {.inline.} =
 template withReadLock*(rw: Rwlock, stmt: untyped) =
   ## Acquires the given lock for reading, executes the statements in body and
   ## releases the lock after the statements finish executing.
-  rw.acquireRead()
-  try:
-    stmt
-  finally:
-    rw.releaseRead()
+  {.locks: [rw].}:
+    rw.acquireRead()
+    try:
+      stmt
+    finally:
+      rw.releaseRead()
 
 template withWriteLock*(rw: Rwlock, stmt: untyped) =
   ## Acquires the given lock for writing, executes the statements in body and
   ## releases the lock after the statements finish executing.
-  rw.acquireWrite()
-  try:
-    stmt
-  finally:
-    rw.releaseWrite()
+  {.locks: [rw].}:
+    rw.acquireWrite()
+    try:
+      stmt
+    finally:
+      rw.releaseWrite()
