@@ -4,22 +4,31 @@ acquired
 failed to acquire
 '''
 """
-from os import sleep
-
 import rwlocks
 
 var
   thrs: array[2, Thread[void]]
   lock: Rwlock
+  rCh: Channel[true]
+  fCh: Channel[string]
+
+open(fCh)
+open(rCh)
 
 proc writer() {.thread.} =
   if tryAcquireWrite(lock):
-    echo "acquired"
-    sleep(50)
+    fCh.send("acquired")
+    discard rCh.recv()
     releaseWrite(lock)
-  else: echo "failed to acquire"
+  else: fCh.send("failed to acquire")
 
-for i in 0..1:
+for i in 0..high(thrs):
   createThread(thrs[i], writer)
+  echo fCh.recv()
+
+for i in 0..high(thrs):
+  rCh.send(true)
 
 joinThreads(thrs)
+close(fCh)
+close(rCh)

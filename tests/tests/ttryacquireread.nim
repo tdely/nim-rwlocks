@@ -1,38 +1,41 @@
 discard """
   output: '''
-acquired
-failed to acquire
+reader acquired
+writer acquired
+reader failed to acquire
 '''
 """
-from os import sleep
-
 import rwlocks
 
 var
   thrs: array[3, Thread[void]]
   lock: Rwlock
-  chan: Channel[string]
+  fCh: Channel[string]
+  rCh: Channel[true]
 
 proc reader() {.thread.} =
   if tryAcquireRead(lock):
-    echo "acquired"
-    discard chan.recv()
+    fCh.send("reader acquired")
     releaseRead(lock)
-  else: echo "failed to acquire"
+  else: fCh.send("reader failed to acquire")
 
 proc writer() {.thread.} =
   acquireWrite(lock)
-  discard chan.recv()
+  fCh.send("writer acquired")
+  discard rCh.recv()
   releaseWrite(lock)
 
-open(chan)
+open(fCh)
+open(rCh)
 
 createThread(thrs[0], reader)
-sleep(50)
+echo fCh.recv()
 createThread(thrs[1], writer)
-sleep(50)
+echo fCh.recv()
 createThread(thrs[2], reader)
-for i in 0..2: chan.send($i)
+echo fCh.recv()
+rCh.send(true)
 
 joinThreads(thrs)
-close(chan)
+close(fCh)
+close(rCh)
