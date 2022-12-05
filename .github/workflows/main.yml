@@ -3,6 +3,7 @@ on: [push, pull_request]
 jobs:
   tests:
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macOS-latest]
         nim-version: [stable, devel]
