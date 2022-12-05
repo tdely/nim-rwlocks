@@ -7,6 +7,8 @@ var
   lock: Rwlock
   errCount: int
 
+initLock(lock)
+
 try:
   withReadLock(lock):
     raise newException(Exception, "read")
@@ -24,3 +26,5 @@ releaseRead(lock)
 
 doAssert tryAcquireWrite(lock)
 releaseWrite(lock)
+
+deinitLock(lock)

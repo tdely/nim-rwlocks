@@ -9,6 +9,14 @@ type Rwlock* = object
   cond: Cond
   g: Lock
 
+proc initLock*(rw: var Rwlock) {.inline.} =
+  initCond(rw.cond)
+  initLock(rw.g)
+
+proc deinitLock*(rw: var Rwlock) {.inline.} =
+  deinitCond(rw.cond)
+  deinitLock(rw.g)
+
 proc tryAcquireRead*(rw: var Rwlock): bool {.inline.} =
   ## Tries to acquire the given lock for reading. Returns `true` on success.
   withLock(rw.g):

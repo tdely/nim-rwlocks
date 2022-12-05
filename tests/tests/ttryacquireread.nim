@@ -25,6 +25,7 @@ proc writer() {.thread.} =
   discard rCh.recv()
   releaseWrite(lock)
 
+initLock(lock)
 open(fCh)
 open(rCh)
 
@@ -39,3 +40,4 @@ rCh.send(true)
 joinThreads(thrs)
 close(fCh)
 close(rCh)
+deinitLock(lock)

@@ -12,6 +12,7 @@ var
   rCh: Channel[true]
   fCh: Channel[string]
 
+initLock(lock)
 open(fCh)
 open(rCh)
 
@@ -32,3 +33,4 @@ for i in 0..high(thrs):
 joinThreads(thrs)
 close(fCh)
 close(rCh)
+deinitLock(lock)

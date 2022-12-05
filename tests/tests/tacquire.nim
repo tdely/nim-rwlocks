@@ -22,6 +22,8 @@ proc writer() {.thread.} =
   inc(writes[])
   releaseWrite(lock)
 
+initLock(lock)
+
 for i in 0..39:
   createThread(thrs[i], reader)
 
@@ -34,3 +36,5 @@ for i in 50..99:
 joinThreads(thrs)
 
 echo $writes[]
+
+deinitLock(lock)
