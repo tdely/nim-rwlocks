@@ -4,55 +4,54 @@ import std/locks
 
 type Rwlock* = object
   ## Readers-writer lock (multiple readers, single writer).
-  activeReaders {.guard: g.}: int
+  users {.guard: g.}: int # number of readers active, -1 if writer active
   waitingWriters {.guard: g.}: int
-  writerActive {.guard: g.}: bool
   cond: Cond
   g: Lock
 
 proc tryAcquireRead*(rw: var Rwlock): bool {.inline.} =
   ## Tries to acquire the given lock for reading. Returns `true` on success.
   withLock(rw.g):
-    if rw.waitingWriters == 0 and not rw.writerActive:
-      inc(rw.activeReaders)
+    if rw.waitingWriters == 0 and rw.users > -1:
+      inc(rw.users)
       result = true
 
 proc acquireRead*(rw: var Rwlock) {.inline.} =
   ## Acquires the given lock for reading.
   withLock(rw.g):
-    while rw.waitingWriters > 0 or rw.writerActive:
+    while rw.waitingWriters > 0 or rw.users == -1:
       rw.cond.wait(rw.g)
-    inc(rw.activeReaders)
+    inc(rw.users)
 
 proc releaseRead*(rw: var Rwlock) {.inline.} =
   ## Releases the given lock from reading.
   withLock(rw.g):
-    doAssert rw.activeReaders > 0
-    dec(rw.activeReaders)
-    if rw.activeReaders == 0:
+    doAssert rw.users > 0
+    dec(rw.users)
+    if rw.users == 0:
       rw.cond.broadcast()
 
 proc tryAcquireWrite*(rw: var Rwlock): bool {.inline.} =
   ## Tries to acquire the given lock for writing. Returns `true` on success.
   withLock(rw.g):
-    if rw.activeReaders == 0 and not rw.writerActive:
-      rw.writerActive = true
+    if rw.users == 0:
+      dec(rw.users)
       result = true
 
 proc acquireWrite*(rw: var Rwlock) {.inline.} =
   ## Acquires the given lock for writing.
   withLock(rw.g):
     inc(rw.waitingWriters)
-    while rw.activeReaders > 0 or rw.writerActive:
+    while rw.users != 0:
       rw.cond.wait(rw.g)
     dec(rw.waitingWriters)
-    rw.writerActive = true
+    rw.users = -1
 
 proc releaseWrite*(rw: var Rwlock) {.inline.} =
   ## Releases the given lock from writing.
   withLock(rw.g):
-    doAssert rw.writerActive
-    rw.writerActive = false
+    doAssert rw.users == -1
+    rw.users = 0
     rw.cond.broadcast()
 
 template withReadLock*(rw: Rwlock, stmt: untyped) =
