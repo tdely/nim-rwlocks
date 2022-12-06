@@ -1,43 +1,39 @@
 discard """
-  output: '''
-reader acquired
-writer acquired
-reader failed to acquire
-'''
+  timeout: 15
 """
 import rwlocks
 
+from os import sleep
+from random import rand
+
 var
-  thrs: array[3, Thread[void]]
+  thrs: array[2, Thread[void]]
   lock: Rwlock
-  fCh: Channel[string]
-  rCh: Channel[true]
+  writes = cast[ptr int](allocShared0(sizeof(int)))
 
 proc reader() {.thread.} =
-  if tryAcquireRead(lock):
-    fCh.send("reader acquired")
-    releaseRead(lock)
-  else: fCh.send("reader failed to acquire")
+  var
+    read: int
+    skippedCount: int
+  while read < 5:
+    if tryAcquireRead(lock):
+      read = writes[]
+      releaseRead(lock)
+    else: inc(skippedCount)
+    sleep(50)
+  assert skippedCount > 0
 
 proc writer() {.thread.} =
-  acquireWrite(lock)
-  fCh.send("writer acquired")
-  discard rCh.recv()
-  releaseWrite(lock)
+  for i in 0..4:
+    acquireWrite(lock)
+    inc(writes[])
+    sleep(rand(50))
+    releaseWrite(lock)
 
 initLock(lock)
-open(fCh)
-open(rCh)
 
 createThread(thrs[0], reader)
-echo fCh.recv()
 createThread(thrs[1], writer)
-echo fCh.recv()
-createThread(thrs[2], reader)
-echo fCh.recv()
-rCh.send(true)
 
 joinThreads(thrs)
-close(fCh)
-close(rCh)
 deinitLock(lock)
