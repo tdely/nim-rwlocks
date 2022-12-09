@@ -4,7 +4,7 @@ on:
     branches:
     - master
     paths:
-    - 'src/**.nim'
+    - 'rwlocks.nim'
     - '.github/workflows/docs.yml'
 
 jobs:
@@ -20,7 +20,7 @@ jobs:
     - uses: jiro4989/setup-nim-action@v1
       with:
         nim-version: stable
-    - run: nimble doc --project src/rwlocks.nim --out:docs/ --git.url:$GITHUB_SERVER_URL/$GITHUB_REPOSITORY --git.devel:master --git.commit:master
+    - run: nimble doc --project rwlocks.nim --out:docs/ --git.url:$GITHUB_SERVER_URL/$GITHUB_REPOSITORY --git.devel:master --git.commit:master
     - uses: crazy-max/ghaction-github-pages@v3
       with:
         build_dir: docs

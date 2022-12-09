@@ -4,8 +4,6 @@ author = "Tobias Dély"
 description = "Readers-writer locks"
 license = "MIT"
 
-srcDir = "src"
-
 # Dependencies
 requires "nim >= 1.6.0"
 
