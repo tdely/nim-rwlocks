@@ -1,3 +1,5 @@
+## This module implements readers-writer locks.
+
 import std/locks
 
 {.push stacktrace: off.}

@@ -1,7 +1,7 @@
 # Package
 version = "1.0.0"
 author = "Tobias Dély"
-description = "Readers-writer (MRSW) lock"
+description = "Readers-writer locks"
 license = "MIT"
 
 srcDir = "src"
