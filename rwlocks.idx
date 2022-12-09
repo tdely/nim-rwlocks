@@ -1,0 +1,11 @@
+Rwlock	rwlocks.html#Rwlock	rwlocks: Rwlock	
+initLock	rwlocks.html#initLock,Rwlock	rwlocks: initLock(rw: var Rwlock)	
+deinitLock	rwlocks.html#deinitLock,Rwlock	rwlocks: deinitLock(rw: var Rwlock)	
+tryAcquireRead	rwlocks.html#tryAcquireRead,Rwlock	rwlocks: tryAcquireRead(rw: var Rwlock): bool	
+acquireRead	rwlocks.html#acquireRead,Rwlock	rwlocks: acquireRead(rw: var Rwlock)	
+releaseRead	rwlocks.html#releaseRead,Rwlock	rwlocks: releaseRead(rw: var Rwlock)	
+tryAcquireWrite	rwlocks.html#tryAcquireWrite,Rwlock	rwlocks: tryAcquireWrite(rw: var Rwlock): bool	
+acquireWrite	rwlocks.html#acquireWrite,Rwlock	rwlocks: acquireWrite(rw: var Rwlock)	
+releaseWrite	rwlocks.html#releaseWrite,Rwlock	rwlocks: releaseWrite(rw: var Rwlock)	
+withReadLock	rwlocks.html#withReadLock.t,Rwlock,untyped	rwlocks: withReadLock(rw: Rwlock; stmt: untyped)	
+withWriteLock	rwlocks.html#withWriteLock.t,Rwlock,untyped	rwlocks: withWriteLock(rw: Rwlock; stmt: untyped)	
