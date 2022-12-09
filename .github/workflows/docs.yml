@@ -1,0 +1,28 @@
+name: docs
+on:
+  push:
+    branches:
+    - master
+    paths:
+    - 'src/**.nim'
+    - '.github/workflows/docs.yml'
+
+jobs:
+  gh-docs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - id: cache-choosenim
+      uses: actions/cache@v3
+      with:
+        path: ~/.choosenim
+        key: ubuntu-latest-choosenim-stable
+    - uses: jiro4989/setup-nim-action@v1
+      with:
+        nim-version: stable
+    - run: nimble doc --project src/rwlocks.nim --out:docs/ --git.url:$GITHUB_SERVER_URL/$GITHUB_REPOSITORY --git.devel:master --git.commit:master
+    - uses: crazy-max/ghaction-github-pages@v3
+      with:
+        build_dir: docs
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
